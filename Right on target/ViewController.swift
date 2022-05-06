@@ -9,39 +9,53 @@ import UIKit
 
 class ViewController: UIViewController {
     
-    @IBOutlet var progress: UIProgressView!
+    // MARK: - View Properties
+    
+    var game: Game!
+    
     @IBOutlet var label: UILabel!
     @IBOutlet var slider: UISlider!
+    @IBOutlet var progress: UIProgressView!
     
-    var number: Int = 0
-    var round: Int = 0
-    var points: Int = 0
+    // MARK: - View Life Cycle
     
-    @IBAction func check(_ sender: UIButton) {
-        switch sender.titleLabel!.text {
-        case "Проверить":
-            label.text = "Вы ошиблись на \(Int(slider.value) - number)"
-            points += 50 - abs(number - Int(slider.value))
-            if round < 5 {
-                sender.setTitle("Следующее число", for: .normal)
-            } else {
-                let alert = UIAlertController(
-                    title: "Игра окончена",
-                    message: "Вы заработали \(self.points) очков",
-                    preferredStyle: .alert)
-                alert.addAction(UIAlertAction(title: "Ok", style: .default))
-                self.present(alert, animated: true)
-                round = 0
-                progress.setProgress(Float(round)/5, animated: true)
-                sender.setTitle("Начать снова", for: .normal)
-            }
-        default:
-            round += 1
-            progress.setProgress(Float(round)/5, animated: true)
-            number = Int.random(in: 0...50)
-            label.text = "Раунд \(round). Установите число - \(number)"
-            sender.setTitle("Проверить", for: .normal)
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        game = Game(startValue: 1, endValue: 50, rounds: 5)
+        updateLabel(with: "Раунд \(game.currentRound). Установите число: \(game.currentSecretValue)")
+        updateProgress(with: Float(game.currentRound-1) / Float(game.lastRound))
+    }
+    
+    // MARK: - View Methods
+    
+    func updateLabel(with text: String) {
+        label.text = text
+    }
+    func updateProgress(with val: Float) {
+        progress.setProgress(val, animated: true)
+    }
+    func showAlertWith(score: Int) {
+        let alert = UIAlertController(
+            title: "Игра окончена",
+            message: "Вы заработали \(score) очков",
+            preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "OK", style: .default))
+        self.present(alert, animated: true)
+    }
+    
+    // MARK: - View Actions
+    
+    @IBAction func check() {
+        game.calculateScore(with: Int(slider.value))
+        if game.isGameEnded {
+            showAlertWith(score: game.totalScore)
+            game.startNewGame()
+        } else {
+            game.nextRound()
         }
+        updateLabel(with: "Раунд \(game.currentRound). Установите число: \(game.currentSecretValue)")
+        updateProgress(with: Float(game.currentRound-1) / Float(game.lastRound))
+    
     }
 }
 
