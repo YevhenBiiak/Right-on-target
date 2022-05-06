@@ -17,14 +17,32 @@ class ViewController: UIViewController {
     @IBOutlet var slider: UISlider!
     @IBOutlet var progress: UIProgressView!
     
+    
     // MARK: - View Life Cycle
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        game = Game(startValue: 1, endValue: 50, rounds: 5)
+        let generator = NumberGenerator(startBound: 0, endBound: 50)
+        game = Game(valueGenerator: generator, rounds: 5)
         updateLabel(with: "Раунд \(game.currentRound). Установите число: \(game.currentSecretValue)")
-        updateProgress(with: Float(game.currentRound-1) / Float(game.lastRound))
+        updateProgress(with: Float(game.currentRound-1) / Float(game.roundsCount))
     }
+    
+    
+    // MARK: - View Actions
+    
+    @IBAction func check() {
+        game.round.calculateScore(with: Int(slider.value))
+        if game.isGameEnded {
+            showAlertWith(score: game.totalScore)
+            game.startNewGame()
+        } else {
+            game.startNewRound()
+        }
+        updateLabel(with: "Раунд \(game.currentRound). Установите число: \(game.currentSecretValue)")
+        updateProgress(with: Float(game.currentRound-1) / Float(game.roundsCount))
+    }
+    
     
     // MARK: - View Methods
     
@@ -41,21 +59,6 @@ class ViewController: UIViewController {
             preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "OK", style: .default))
         self.present(alert, animated: true)
-    }
-    
-    // MARK: - View Actions
-    
-    @IBAction func check() {
-        game.calculateScore(with: Int(slider.value))
-        if game.isGameEnded {
-            showAlertWith(score: game.totalScore)
-            game.startNewGame()
-        } else {
-            game.nextRound()
-        }
-        updateLabel(with: "Раунд \(game.currentRound). Установите число: \(game.currentSecretValue)")
-        updateProgress(with: Float(game.currentRound-1) / Float(game.lastRound))
-    
     }
 }
 

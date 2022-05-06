@@ -6,74 +6,60 @@
 //
 
 
-
+// MARK: - Game Protocol
 protocol GameProtocol {
-    // Количество заработанных очков
     var totalScore: Int { get }
-    // Загаданное значение
-    var currentSecretValue: Int { get }
-    // Проверяет, закончена ли игра
+    var currentRound: Int { get }
+    var roundsCount: Int { get }
     var isGameEnded: Bool { get }
-    // Начинает новую игру и сразу стартует первый раунд
+    var currentSecretValue: Int { get }
+    var round: GameRoundProtocol! { get }
+    
+    init(valueGenerator: GeneratorProtocol, rounds: Int)
+    
+    func startNewRound()
     func startNewGame()
-    // Начинает новый раунд (обновляет загаданное число)
-    func nextRound()
-    // Сравнивает переданное значение с загаданным и начисляет очки func calculateScore(with value: Int)
-    func calculateScore(with: Int)
 }
 
 
-
+// MARK: Game class
 class Game: GameProtocol {
     
     // MARK: - Properties
     
-    var totalScore: Int
+    var currentRound: Int { rounds.count }
+    var currentSecretValue: Int { round.secretValue }
+    var isGameEnded: Bool { currentRound >= roundsCount }
+    var totalScore: Int { rounds.reduce(0) { $0 + $1.score } }
+    var roundsCount: Int
     
-    var currentSecretValue: Int
-    private var minSecretValue: Int
-    private var maxSecretValue: Int
+    var round: GameRoundProtocol!
     
-    var currentRound: Int
-    var lastRound: Int
+    private var secretValueGeneratior: GeneratorProtocol
+    private var rounds: [GameRoundProtocol] = []
     
-    var isGameEnded: Bool {
-        return currentRound >= lastRound
-    }
     
     
     // MARK: - Initializers
     
-    init(startValue: Int, endValue: Int, rounds: Int) {
-        assert(startValue < endValue, "startSecretValue less endSecretValue")
-        minSecretValue = startValue
-        maxSecretValue = endValue
-        lastRound = rounds
-        currentRound = 1
-        totalScore = 0
-        currentSecretValue = (minSecretValue...maxSecretValue).randomElement()!
+    required init(valueGenerator: GeneratorProtocol, rounds: Int) {
+        roundsCount = rounds
+        secretValueGeneratior = valueGenerator
+        startNewRound()
     }
+    
     
     
     // MARK: - Methods
     
+    func startNewRound() {
+        round = GameRound(whitSecretValue: secretValueGeneratior.getRandomValue())
+        rounds.append(round)
+    }
     func startNewGame() {
-        totalScore = 0
-        currentRound = 0
-        nextRound()
-    }
-    
-    func nextRound() {
-        currentRound += 1
-        currentSecretValue = getNewSecretValue()
-    }
-    
-    func calculateScore(with value: Int) {
-        totalScore += abs(maxSecretValue - value)
-    }
-    
-    // MARK:  private func
-    private func getNewSecretValue() -> Int {
-        (minSecretValue...maxSecretValue).randomElement()!
+        rounds = []
+        startNewRound()
     }
 }
+    
+    
