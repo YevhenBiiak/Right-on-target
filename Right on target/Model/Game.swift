@@ -8,58 +8,63 @@
 
 // MARK: - Game Protocol
 protocol GameProtocol {
-    var totalScore: Int { get }
-    var currentRound: Int { get }
-    var roundsCount: Int { get }
-    var isGameEnded: Bool { get }
+    var totalScore: Int         { get }
+    var roundsCount: Int        { get }
+    var isGameEnded: Bool       { get }
+    var currentRoundNumber: Int { get }
     var currentSecretValue: Int { get }
-    var round: GameRoundProtocol! { get }
+    var rounds:        [GameRoundProtocol] { get }
     
-    init(valueGenerator: GeneratorProtocol, rounds: Int)
-    
-    func startNewRound()
-    func startNewGame()
+    func check(value: Int)
 }
 
-
-// MARK: Game class
+// MARK: -
 class Game: GameProtocol {
+    // MARK: Properties
     
-    // MARK: - Properties
+    var totalScore: Int         { rounds.reduce(0) { $0 + ($1.score ?? 0) } }
+    var isGameEnded: Bool       { currentRoundNumber == roundsCount && isRoundEnded}
+    var isRoundEnded: Bool      { currentRound.score != nil }
+    var currentSecretValue: Int { currentRound.secretValue }
+    var currentRoundNumber: Int { rounds.count }
+    var currentRound: GameRoundProtocol { rounds.last! }
     
-    var currentRound: Int { rounds.count }
-    var currentSecretValue: Int { round.secretValue }
-    var isGameEnded: Bool { currentRound >= roundsCount }
-    var totalScore: Int { rounds.reduce(0) { $0 + $1.score } }
-    var roundsCount: Int
+    var roundsCount:    Int
+    var rounds:         [GameRoundProtocol]
     
-    var round: GameRoundProtocol!
-    
-    private var secretValueGeneratior: GeneratorProtocol
-    private var rounds: [GameRoundProtocol] = []
+    enum RoundType {case number, color}
+    lazy var roundType: RoundType = { currentRound is NumberGameRound ? .number : .color }()
     
     
     
     // MARK: - Initializers
     
-    required init(valueGenerator: GeneratorProtocol, rounds: Int) {
-        roundsCount = rounds
-        secretValueGeneratior = valueGenerator
-        startNewRound()
+    init(round: GameRoundProtocol, roundsCount: Int) {
+        self.rounds         = [round]
+        self.roundsCount    = roundsCount
     }
+    
     
     
     
     // MARK: - Methods
     
-    func startNewRound() {
-        round = GameRound(whitSecretValue: secretValueGeneratior.getRandomValue())
-        rounds.append(round)
+    func check(value: Int) {
+
+        // calculate Score
+        currentRound.calculateScore(withValue: value)
+        
+        // add New Roud
+        guard !isGameEnded else { return }
+        switch roundType {
+        case .number: rounds.append(NumberGameRound(withGenerator: currentRound.valueGenerator))
+        case .color: rounds.append(ColorGameRound(withGenerator: currentRound.valueGenerator))
+        }
     }
     func startNewGame() {
-        rounds = []
-        startNewRound()
+        switch roundType {
+        case .number: rounds = [NumberGameRound(withGenerator: currentRound.valueGenerator)]
+        case .color: rounds = [ColorGameRound(withGenerator: currentRound.valueGenerator)]
+        }
     }
 }
-    
-    

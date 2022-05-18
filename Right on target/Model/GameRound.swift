@@ -8,27 +8,47 @@
 // MARK: - Protocol
 
 protocol GameRoundProtocol {
-    var score: Int { get }
-    var secretValue: Int { get }
+    var score: Int? { get }
+    var secretValue: Int { get set }
+    var valueGenerator: GeneratorProtocol { get }
     
-    func calculateScore(with: Int)
+    func calculateScore(withValue: Int)
 }
 
 
-// MARK: - Inherited classes
 
-class GameRound: GameRoundProtocol {
-    var score: Int
-    var secretValue: Int
+// MARK: - NumberGameRound class
+
+class NumberGameRound: GameRoundProtocol {
+    var score: Int?
+    lazy var secretValue: Int = valueGenerator.getRandomValue()
+    var valueGenerator: GeneratorProtocol
+    
+    init(withGenerator generator: GeneratorProtocol) {
+        valueGenerator = generator
+    }
+
+    func calculateScore(withValue value: Int) {
+        score = valueGenerator.endBound - abs(secretValue - value)
+    }
+}
+
+
+
+// MARK: - NumberGameRound class
+
+class ColorGameRound: GameRoundProtocol {
+    var score: Int?
+    lazy var secretValue: Int = valueGenerator.getRandomValue()
+    var valueGenerator: GeneratorProtocol
     
     
-    init(whitSecretValue value: Int) {
-        score = 0
-        secretValue = value
+    init(withGenerator generator: GeneratorProtocol) {
+        valueGenerator = generator
     }
     
     
-    func calculateScore(with value: Int) {
-        score = 50 - abs(secretValue - value)
+    func calculateScore(withValue value: Int) {
+        score = value == secretValue ? 1 : 0
     }
 }
