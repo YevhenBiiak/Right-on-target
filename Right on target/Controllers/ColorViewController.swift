@@ -75,10 +75,10 @@ class ColorViewController: UIViewController {
     
     // MARK: - View Methods
     
-    func updateLabel<T>(_ label: UILabel, withText text: T) {
+    private func updateLabel<T>(_ label: UILabel, withText text: T) {
         label.text = "\(text)"
     }
-    func updateButton(_ button: UIButton, withTintColor tintColor: UIColor) {
+    private func updateButton(_ button: UIButton, withTintColor tintColor: UIColor) {
         button.tintColor = tintColor
     }
 }

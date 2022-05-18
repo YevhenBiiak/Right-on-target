@@ -70,11 +70,11 @@ class NumberViewController: UIViewController {
     
     // MARK: - View Methods
     
-    func updateLabel<T>(_ label: UILabel, with value: T) {
+    private func updateLabel<T>(_ label: UILabel, with value: T) {
         label.text = "\(value)"
     }
     
-    func updateProgress(with value: Float) {
+    private func updateProgress(with value: Float) {
         progress.setProgress(value, animated: true)
     }
 }
